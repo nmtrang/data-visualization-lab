@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>CodePen - Lab 1 - Introduction to HTML, CSS, SVG and Javascript</title>
+  <link rel="stylesheet" href="./style.css">
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="style.css">
+	<script src="app.js"></script>
+	<title>Lab 1</title>
+</head>
+
+<body>
+	<h3 id="name">Nguyen Minh Trang</h3>
+
+	<svg id=”initials” width=”300” height=”150”>
+
+		<!------ N ------>
+		<line x1="10" x2="10" y1="10" y2="150" stroke='red' stroke-width='10' />
+		<line x1="10" x2="50" y1="10" y2="150" stroke='red' stroke-width='10' />
+		<line x1="50" x2="50" y1="10" y2="150" stroke='red' stroke-width='10' />
+
+		<!------- M ------->
+		<line x1="70" x2="70" y1="10" y2="150" stroke='red' stroke-width='10' />
+		<line x1="70" x2="110" y1="10" y2="150" stroke='red' stroke-width='10' />
+		<line x1="110" x2="150" y1="150" y2="10" stroke='red' stroke-width='10' />
+		<line x1="150" x2="150" y1="10" y2="150" stroke='red' stroke-width='10' />
+
+		<!-------- T ------->
+		<line x1="170" x2="230" y1="10" y2="10" stroke='red' stroke-width='10' />
+		<line x1="200" x2="200" y1="10" y2="150" stroke='red' stroke-width='10' />
+
+	</svg>
+
+	<h4 id="id">ITDSIU19020</h4>
+	<h4 id="course-title">Data Science and Data Visualization</h4>
+	<h4 id="lab-name">Lab 1 - Introduction to HTML, CSS, SVG, and Javascript</h4>
+	<p>This is all my own work. I did not copy the code from any other source</p>
+
+	<svg id=”histogram” width=”300” height=”400”>
+		<title id="title">Letters distribution</title>
+		<desc id="desc">A-D; E-H; I-L; M-P; Q-U; V-Z</desc>
+		<g class="bar-1">
+			<rect width="50" height="10"></rect>
+			<text x="0" y="70">A-D</text>
+		</g>
+		<g class="bar-2">
+			<rect width="50" height="10" x="60"></rect>
+			<text x="60" y="70">E-H</text>
+		</g>
+		<g class="bar-3">
+			<rect width="50" height="10" x="120"></rect>
+			<text x="120" y="70">I-L</text>
+		</g>
+		<g class="bar-4">
+			<rect width="50" height="10" x="180"></rect>
+			<text x="180" y="70">M-P</text>
+		</g>
+		<g class="bar-5">
+			<rect width="50" height="10" x="240" </rect>
+				<text x="240" y="70">Q-U</text>
+		</g>
+		<g class="bar-6">
+			<rect width="50" height="10" x="300" </rect>
+				<text x="300" y="70">V-Z</text>
+		</g>
+	</svg>
+
+</body>
+
+</html>
+<!-- partial -->
+  <script  src="./script.js"></script>
+
+</body>
+</html>

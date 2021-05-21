@@ -1,0 +1,11 @@
+h3#name {
+    color: blue;
+}
+
+h4#id, h4#course-title {
+    font-weight: bold;
+}
+
+h4#lab-name {
+    font-style: italic;
+}
