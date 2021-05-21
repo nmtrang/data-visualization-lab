@@ -1,0 +1,30 @@
+body {
+    text-align: left;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.tooltip {
+    padding: 10px 10px 10px 10px;
+    border-radius: 10px 10px 10px 10px;
+    font-size: 12.5px;
+    font-weight: bold;
+    position: absolute;
+    width: 1F70px;
+    height: 3F8px;
+    pointer-events: none;
+    background: rgb(214, 124, 124); 
+    color: white; 
+}
+
+.brush .extent {
+    stroke: white; 
+    fill-opacity: .25;
+    shape-rendering: crispEdges; 
+}
+
+.selected {
+    fill: red;
+    opacity: 1 !important;
+    stroke: black; 
+    stroke-width: 1px;
+}

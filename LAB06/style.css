@@ -1,0 +1,40 @@
+body {
+    font: 13px "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.x.axis path {
+    display: none;
+}
+
+.overlay {
+    fill: none;
+    pointer-events: all;
+}
+
+.focus circle {
+    fill: steelblue;
+}
+
+.focus text {
+    font-size: 14px;
+}
+
+div#tooltip {
+    font-weight: bold;
+    position: absolute;
+    width: 300px;
+    height: 100px;
+    padding: 6px;
+    background: rgb(255, 213, 213);
+    border: 0px;
+    border-radius: 10px;
+    pointer-events: none;
+    stroke: black;
+}

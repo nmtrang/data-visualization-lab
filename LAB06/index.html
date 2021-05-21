@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <title>Lab 6</title>
+</head>
+
+<body>
+    <h2>Name: Nguyen Minh Trang</h2>
+    <h2>Student ID: ITDSIU19020</h2>
+    <h3>Data Science and Data Visualization</h3>
+    <h3>Lab 6 - D3.js - Line and Stacked Area Chart</h3>
+    <p>This is all my own work. I did not copy the code from any other source</p>
+
+    <div id="linechart"></div>
+
+    <script>
+        var margin = {
+            top: 10,
+            right: 30,
+            bottom: 30,
+            left: 60,
+        };
+        var width = 800 - margin.left - margin.right;
+        var height = 600 - margin.top - margin.bottom;
+
+        var rowConverter = function (d) {
+            return {
+                ["Country"]: d["Country"],
+                "Date": d3.timeParse("%m/%d/%Y")(d.Date),
+                Number_of_confirmed_cases: parseInt(d.Number_of_confirmed_cases)
+            }
+        }
+
+        d3.csv(
+            "https://raw.githubusercontent.com/MrCat-2510/Testing/main/time_series_covid19_confirmed_VN__US_Frn_Italy.csv",
+            rowConverter,
+            function (error, data) {
+                if (error) {
+                    console.log(error);
+                } else {
+                    console.log(data);
+
+
+
+
+
+                    var sumStat = d3.nest()
+                        .key(function (d) {
+                            return d["Country"];
+                        })
+                        .entries(data);
+
+                    console.log(sumStat);
+
+                    var linechart = d3.select("body")
+                        .append("svg")
+                        .attr("width", width + margin.left + margin.right)
+                        .attr("height", height + margin.top + margin.bottom)
+                        .append("g")
+                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+
+                    // x axis
+                    var x = d3.scaleTime()
+                        .domain(d3.extent(data, function (d) {
+                            return d.Date;
+                        }))
+                        .range([0, width - 200]);
+                    linechart.append("g")
+                        .attr("transform", "translate(0," + height + ")")
+
+                        .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%m-%d")));
+
+                    // y axis
+                    var y = d3.scaleLinear()
+                        .domain([0, d3.max(data, function (d) {
+                            return +d.Number_of_confirmed_cases
+                        })])
+                        .range([height, 0]);
+                    linechart.append("g")
+                        .call(d3.axisLeft(y));
+
+
+
+                    // color pallete
+                    var res = sumStat.map(function (d) {
+                        return d.key
+                    })
+                    var color = d3.scaleOrdinal()
+                        .domain(res)
+                        .range(['#EE811D', '#377eb8', '#4daf4a', "#984ea3"])
+
+                    // add the line
+                    linechart.selectAll(".line")
+                        .data(sumStat).enter()
+                        .append("path")
+                        .attr("fill", "none")
+                        .attr("class", function (d) {
+                            return "lines " + d.key
+                        })
+                        .attr("stroke", function (d) {
+                            return color(d.key)
+                        })
+                        .attr("stroke-width", 3)
+                        .attr("d", function (d) {
+                                return d3.line()
+                                    .x(function (d) {
+                                        return x(d.Date);
+                                    })
+                                    .y(function (d) {
+                                        return y(+d.Number_of_confirmed_cases);
+                                    })
+                                    (d.values)
+                            }
+
+                        )
+
+                    // Hover tooltip with vertical line
+                    var tooltip = d3.select("#linechart").append("div")
+                        .attr('id', 'tooltip')
+                        .style("position", "absolute")
+                        .style("opacity", 0)
+                        .style('display', 'none')
+
+                    mouseG = linechart.append("g")
+                        .attr("class", "mouse-over-effects");
+
+                    mouseG.append("path")
+                        .attr("class", "mouse-line")
+                        .style("stroke", "#A9A9A9")
+                        .style("stroke-width", "2px")
+                        .style("opacity", "0");
+
+                    var lines = document.getElementsByClassName('line');
+
+                    var mousePerLine = mouseG.selectAll('.mouse-per-line')
+                        .data(sumStat)
+                        .enter()
+                        .append("g")
+                        .attr("class", "mouse-per-line");
+
+                    mousePerLine.append("circle")
+                        .attr("r", 4)
+                        .style("stroke", function (d) {
+                            return color(d.key)
+                        })
+                        .style("fill", "none")
+                        .style("stroke-width", "2px")
+                        .style("opacity", "0");
+
+                    mouseG.append('svg:rect') // append a rect to catch mouse movements on canvas
+                        .attr('width', width - 200)
+                        .attr('height', height)
+                        .attr('fill', 'none')
+                        .attr('pointer-events', 'all')
+                        .on('mouseout', function () { // on mouse out hide line, circles and text
+                            d3.select(".mouse-line")
+                                .style("opacity", "0");
+                            d3.selectAll(".mouse-per-line circle")
+                                .style("opacity", "0");
+                            d3.selectAll(".mouse-per-line text")
+                                .style("opacity", "0");
+                            d3.selectAll("#tooltip")
+                                .style('display', 'none')
+
+                        })
+                        .on('mouseover', function () { // on mouse in show line, circles and text
+                            d3.select(".mouse-line")
+                                .style("opacity", "1");
+                            d3.selectAll(".mouse-per-line circle")
+                                .style("opacity", "1");
+                            d3.selectAll("#tooltip")
+                                .style("opacity", "1")
+                                .style('display', 'block')
+                        })
+                        .on('mousemove',
+                            function () { // update tooltip content, line, circles and text when mouse moves
+                                var mouse = d3.mouse(this)
+
+                                d3.selectAll(".mouse-per-line")
+                                    .attr("transform", function (d, i) {
+                                        var xDate = x.invert(mouse[0])
+                                        var bisect = d3.bisector(function (d) {
+                                            return d.Date;
+                                        }).left // retrieve row index of date on parsed csv
+                                        var idx = bisect(d.values, xDate);
+
+                                        d3.select(".mouse-line")
+                                            .attr("d", function () {
+                                                var data = "M" + x(d.values[idx].Date) + "," + (
+                                                    height);
+                                                data += " " + x(d.values[idx].Date) + "," + 0;
+                                                return data;
+                                            });
+                                        return "translate(" + x(d.values[idx].Date) + "," + y(d
+                                            .values[idx].Number_of_confirmed_cases) + ")";
+
+                                    });
+                                updateTooltipContent(mouse, sumStat)
+
+                            }
+                        );
+
+                    function updateTooltipContent(mouse, sumStat) {
+
+                        sortingObj = []
+                        sumStat.map(d => {
+                            var xDate = x.invert(mouse[0])
+                            var bisect = d3.bisector(function (d) {
+                                return d.Date;
+                            }).left
+                            var idx = bisect(d.values, xDate)
+                            sortingObj.push({
+                                Country: d.values[idx]["Country"],
+                                Number_of_confirmed_cases: d.values[idx].Number_of_confirmed_cases,
+
+                            })
+                        })
+
+                        sortingObj.sort(function (x, y) {
+                            return d3.descending(x.Number_of_confirmed_cases, y.Number_of_confirmed_cases);
+                        })
+
+                        var sortingArr = sortingObj.map(d => d["Country"])
+
+                        var res_nested1 = sumStat.slice().sort(function (a, b) {
+                            return sortingArr.indexOf(a.Number_of_confirmed_cases) - sortingArr.indexOf(b
+                                .Number_of_confirmed_cases
+                            ); // rank vehicle category based on price of premium
+                        })
+
+                        tooltip.html("Save " + sortingObj[0]["Country"] + " Jesus!!!. Highest case = " + sortingObj[
+                                0].Number_of_confirmed_cases)
+                            .style('display', 'block')
+                            .style('left', d3.event.pageX + 20 + "px")
+                            .style('top', d3.event.pageY - 20 + "px")
+                            .style('font-size', '14px')
+                            .selectAll()
+                            .data(res_nested1)
+                            .enter() // for each vehicle category, list out name and price of premium
+                            .append('div')
+                            .style('color', d => {
+                                return color(d.key)
+                            })
+                            .style('font-size', '12')
+                            .html(d => {
+                                var xDate = x.invert(mouse[0])
+                                var bisect = d3.bisector(function (d) {
+                                    return d.Date;
+                                }).left
+                                var idx = bisect(d.values, xDate)
+                                return d.key + ": " + d.values[idx]
+                                    .Number_of_confirmed_cases.toString()
+                            })
+                    }
+
+
+
+                    // What to do when one group is hovered
+                    var highlight = function (d) {
+                        // reduce opacity of all groups
+                        d3.selectAll(".lines").style("opacity", 0.05)
+                        // expect the one that is hovered
+                        d3.selectAll("." + d).style("opacity", 1)
+                    }
+
+                    // And when it is not hovered anymore
+                    var noHighlight = function (d) {
+                        d3.selectAll(".lines").style("opacity", 1)
+                    }
+
+                    // Add one dot in the legend for each name.
+                    var size = 35
+                    var allgroups = ["Vietnam", "US", "France", "Italy"]
+                    linechart.selectAll("myrect")
+                        .data(allgroups)
+                        .enter()
+                        .append("circle")
+                        .attr("cx", 600)
+                        .attr("cy", function (d, i) {
+                            return 10 + i * (size + 5)
+                        }) // 100 is where the first dot appears. 25 is the distance between dots
+                        .attr("r", 10)
+                        .style("fill", function (d) {
+                            return color(d)
+                        })
+                        .on("mouseover", highlight)
+                        .on("mouseleave", noHighlight)
+
+                    // Add labels beside legend dots
+                    linechart.selectAll("mylabels")
+                        .data(allgroups)
+                        .enter()
+                        .append("text")
+                        .attr("x", 600 + size * .8)
+                        .attr("y", function (d, i) {
+                            return i * (size + 5) + (size / 2) - 9
+                        }) // 100 is where the first dot appears. 25 is the distance between dots
+                        .style("fill", function (d) {
+                            return color(d)
+                        })
+                        .text(function (d) {
+                            return d
+                        })
+                        .attr("text-anchor", "left")
+                        .style("alignment-baseline", "middle")
+                        .on("mouseover", highlight)
+                        .on("mouseleave", noHighlight)
+
+
+
+
+                }
+            })
+    </script>
+</body>
+
+</html>

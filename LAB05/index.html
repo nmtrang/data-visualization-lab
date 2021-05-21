@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <title>Lab 5</title>
+</head>
+
+<body>
+
+    <h3>Nguyen Minh Trang</h3>
+    <h4>ITDSIU19020</h4>
+    <h4>Data Science and Data Visualization</h4>
+    <h4>Lab 5 - D3.js - Interaction</h4>
+    <h5>This is all my own work. I did not copy from any other source.</h5>
+
+    <div id="scatterplot"></div>
+
+    <svg width=400 height=400 id="dataviz_brushCSS"></svg>
+
+
+    <script>
+        var margin = {
+            top: 10,
+            right: 30,
+            bottom: 30,
+            left: 60,
+        };
+        var width = 800 - margin.left - margin.right;
+        var height = 800 - margin.top - margin.bottom;
+
+        // Encode the attributes
+        var rowConverter = function (d) {
+            return {
+                ["Province/State"]: d["Province/State"],
+                ["Country/Region"]: d["Country/Region"],
+                Lat: parseFloat(d.Lat),
+                Long: parseFloat(d.Long),
+                date: parseInt(d["5/4/20"])
+            };
+        }
+
+        // main scatterplot section
+        var scatterplot = d3.select("#scatterplot").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        // setup the tooltip
+        var tooltip = d3.select("body").append("div").attr("class", "tooltip");
+
+        // Read the data
+        d3.csv(
+            "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv",
+            rowConverter,
+            function (error, data) {
+                if (error) {
+                    console.log(error);
+                } else {
+                    console.log(data);
+
+                    // add x axis
+                    var x = d3.scaleLinear()
+                        .domain([d3.min(data, function (d) {
+                            return d.Long;
+                        }), d3.max(data, function (d) {
+                            return d.Long;
+                        })])
+                        .range([0, width])
+
+                    scatterplot.append("g")
+                        .attr("transform", "translate(0," + height + ")")
+                        .call(d3.axisBottom(x));
+
+                    // X label
+                    scatterplot.append("text")
+                        .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.top + 20) + ")")
+                        .style("text-anchor", "middle")
+                        .text("Longitude");
+
+                    // add y axis
+                    var y = d3.scaleLinear()
+                        .domain([d3.min(data, function (d) {
+                            return d.Lat;
+                        }), d3.max(data, function (d) {
+                            return d.Lat;
+                        })])
+                        .range([height, 0]);
+                    scatterplot.append("g")
+                        .call(d3.axisLeft(y));
+                    // Y label
+                    scatterplot.append("text")
+                        .attr("transform", "rotate(-90)")
+                        .attr("y", 0 - margin.left)
+                        .attr("x", 0 - (height / 2))
+                        .attr("dy", "1em")
+                        .style("text-anchor", "middle")
+                        .text("Latitude");
+
+                    // color opacity for the dots
+                    var cValue = function (d) {
+                            return d.date;
+                        },
+                        color = d3.scaleLinear()
+                        .domain([1, 500000])
+                        .range(["rgba(1000,0,0,0)", "rgba(500,0,0,10)"]);
+
+                    // add dots
+                    scatterplot.append("g")
+                        .selectAll("dot")
+                        .data(data)
+                        .enter()
+                        .append("circle")
+                        .attr("r", 7)
+                        .attr("cx", function (d) {
+                            return x(d.Long)
+                        })
+                        .attr("cy", function (d) {
+                            return +y(d.Lat)
+                        })
+                        .style("fill", function (d) {
+                            return color(cValue(d));
+                        })
+                        .on("mouseover", function (d) {
+                            tooltip
+                                .transition()
+                                .duration(100)
+                                .style("text-anchor", "end")
+                                .style("opacity", 100);
+
+                            tooltip.html(
+                                    "Country: " +
+                                    d["Country/Region"] +
+                                    "<br/> (" +
+                                    d.Long +
+                                    ", " +
+                                    d.Lat +
+                                    ")" +
+                                    "<br/> Confirmed cases: " +
+                                    d.date +
+                                    ")"
+                                )
+                                .style("left", d3.event.pageX + 5 + "px")
+                                .style("top", d3.event.pageY - 30 + "px");
+                        })
+
+                        .on("mouseout", function (d) {
+                            tooltip.transition().duration(200).style("opacity", 0);
+                        });
+
+                    var myCircle = d3.select("#dataviz_brushCSS")
+                        .append("g")
+                        .append("circle")
+                        .attr("cx", 150)
+                        .attr("cy", 150)
+                        .attr("r", 40)
+                        .attr("fill", "#69a3b2")
+
+                    // Add brushing
+                    d3.select("#dataviz_brushCSS")
+                        .call(d3.brush() // Add the brush feature using the d3.brush function
+                            .extent([
+                                [0, 0],
+                                [300, 400]
+                            ]) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
+                            .on("start brush",
+                                updateChart
+                                ) // Each time the brush selection changes, trigger the 'updateChart' function
+                        )
+
+                    // Function that is triggered when brushing is performed
+                    function updateChart() {
+
+                        // Get the selection coordinate
+                        extent = d3.event.selection // looks like [ [12,11], [132,178]]
+
+                        // Is the circle in the selection?
+                        isBrushed = extent[0][0] <= myCircle.attr("cx") && extent[1][0] >= myCircle.attr("cx") &&
+                            // Check X coordinate
+                            extent[0][1] <= myCircle.attr("cy") && extent[1][1] >= myCircle.attr(
+                                "cy") // And Y coordinate
+
+                        // Circle is green if in the selection, pink otherwise
+                        myCircle.classed("selected", isBrushed)
+                    }
+
+
+
+
+
+
+                }
+            }
+        );
+    </script>
+</body>
+
+</html>
